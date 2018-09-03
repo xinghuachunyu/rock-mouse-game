@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <style>
+    .box{
+      width: 320px;
+      height: 480px;
+      margin:0 auto;
+      background: url("img/game_bg.jpg") 0 0 no-repeat;
+      position: relative;
+    }
+    #score{
+      font-size: 26px;
+      color: #fff;
+      font-weight: bold;
+      position: absolute;
+      top:4px;
+      left:60px;
+    }
+    #times{
+      width: 180px;
+      height: 16px;
+      background: url("./img/progress.png") 0 0 no-repeat;
+      position: absolute;
+      left: 64px;
+      top:66px;
+    }
+    #start{
+      font-size: 50px;
+      font-weight: bold;
+      color: #fff;
+      position: absolute;
+      left: 50%;
+      top:50%;
+      margin:-33px 0 0 -50px;
+      cursor: pointer;
+      z-index: 99;
+    }
+    #keng>div{
+      position:absolute;
+      width: 73px;
+      height: 65px;
+      background-size: 100% 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div id="score">0</div>
+    <div id="times"></div>
+    <div id="start">开始</div>
+    <div id="keng">
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+  </div>
+  <script>
+    function $(id){
+      return document.getElementById(id);
+    }
+    function randomNum(min,max){
+      return Math.floor(Math.random()*(max-min+1)+min);
+    }
+    //设置游戏时间
+    var gameTime = 60;
+    var count = 0;
+    //时间进度条
+    function progress(){
+      var speed = $("times").offsetWidth / gameTime;
+      var timer = setInterval(function(){
+        if($("times").offsetWidth - speed < 0){
+          clearInterval(timer);
+          $("times").style.width = "0px";
+          alert("GG");
+        }
+        $("times").style.width = $("times").offsetWidth - speed + "px";
+      },1000)
+    }
+    //点击开始按钮
+    $("start").onclick = function(){
+      // 开始按钮隐藏
+      this.style.display = "none";
+      //时间进度条开始变短（开始计时）
+      progress();
+      // 调用出狼的动画
+      setInterval(function(){
+        randomKeng();
+      },500)
+
+    }
+    //定义狼坑的数组
+    var kengArr = $("keng").getElementsByTagName("div");
+    //定义大狼和小狼的数组，用来存放图片
+    var bigWolf = [];
+    var smallWolf = [];
+    for(var i=0;i<10;i++){
+      bigWolf.push("img/h"+i+".png");
+      smallWolf.push("img/x"+i+".png");
+    }
+    //设置坑的位置
+    var kengP = [
+        ['112px','145px'],
+        ['35px','257px'],
+        ['202px','171px'],
+        ['32px','190px'],
+        ['118px','221px'],
+        ['215px','241px'],
+        ['133px','303px'],
+        ['44px','323px'],
+        ['223px','325px']
+    ];
+    for(var i=0;i<kengP.length;i++){
+      kengArr[i].style.left = kengP[i][0];
+      kengArr[i].style.top = kengP[i][1];
+      kengArr[i].life = true;
+    }
+    //出狼动画
+    function wolfAnimate(wolfArr,keng){
+      var index = 0;
+      var speed = 1;
+      keng.timer = setInterval(function(){
+        keng.style.backgroundImage = "url("+wolfArr[index]+")";
+        if(index == 5){
+          speed *= -1;
+        }
+        index = index + speed;
+        if(index < 0){
+          keng.style.backgroundImage = "";
+          clearInterval(keng.timer);
+        }
+      },300)
+    }
+    //随机坑来执行出狼动画
+    function randomKeng(){
+      var randIndex = randomNum(0,(kengArr.length - 1));
+      var randWolf = randomNum(0,1);
+      if(kengArr[randIndex].style.backgroundImage == ""){
+        if(randWolf == 0){
+          wolfAnimate(bigWolf,kengArr[randIndex]);
+          kengArr[randIndex].type = 0;
+        }else{
+          wolfAnimate(smallWolf,kengArr[randIndex])
+          kengArr[randIndex].type = 1;
+        }
+      }
+    }
+    // 给每个坑绑定一个点击事件
+    for(var i=0;i<kengArr.length;i++){
+      kengArr[i].onclick = function(){
+        if(this.style.backgroundImage != ""){
+          if(this.type == 0){
+            beatWolf(bigWolf,this);
+          }else{
+            beatWolf(smallWolf,this);
+          }
+        }
+      }
+    }
+    //打狼的动画
+    function beatWolf(wolfArr,keng){
+      var index = 6;
+      clearInterval(keng.timer);
+      if(keng.life == false){
+        return false;
+      }
+      keng.life = false;
+      if(keng.type == 0){
+        count += 10
+      }else{
+        count -= 10
+      }
+      $("score").innerHTML = count;
+      keng.t = setInterval(function(){
+        keng.style.backgroundImage = "url("+ wolfArr[index] +")";
+        index++;
+        if(index == wolfArr.length){
+          keng.style.backgroundImage = "";
+          clearInterval(keng.t);
+          keng.life = true;
+        }
+      },200)
+    }
+  </script>
+</body>
+</html>
